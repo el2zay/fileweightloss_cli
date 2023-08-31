@@ -1,13 +1,9 @@
-# fileweightloss
+# FileWeightLoss
 
-## À quoi sert fileweightloss
-Fileweightloss permet de compresser une vidéo ou un audio en évitant de perdre la qualité.
+## À quoi sert FileWeightLoss
+Fileweightloss permet de compresser un fichier vidéo ou audio dans certains formats courants (.mp4, .mov, .mp3, ...) sans réduire la résolution, et sans faire de trop grosses modifications dans la qualité visuelle ou sonore.
 
-Il utilise ffmpeg et ce dernier doit obligatoirement être installer sur votre ordinateur.
+Il utilise [ffmpeg](https://ffmpeg.org/download.html), ce dernier doit obligatoirement être installé sur votre ordinateur.
 
-## Exemple avant après
-**Bientot promis !**
-
-# Lien
-
-- [GitHub Gist à l'origine de fileweightloss](https://gist.github.com/johan-perso/04a5308e73d14ba0ff01468919337d2e)
+## Démonstration : avant - après
+**Bientot, promis !** 
