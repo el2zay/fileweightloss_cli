@@ -20,7 +20,7 @@ var (
 	withoutExt string
 	ffmpegPath string
 	// Définir les couleurs
-	green   = color.New(color.FgGreen).SprintFunc()
+	green   = color.New(color.FgHiGreen).SprintFunc()
 	bold    = color.New(color.Bold)
 	red     = color.New(color.FgRed)
 	s       = spinner.New(spinner.CharSets[14], 100*time.Millisecond)
@@ -47,6 +47,7 @@ func main() {
 	if err != nil {
 		red.Println("\rUne erreur s'est produite\n", err, "\nVérifiez que le fichier existe.")
 		yellow.Println("Si le chemin contient des espaces mettez le chemin entre guillemet.")
+		s.Stop()
 		os.Exit(0)
 	}
 
@@ -57,6 +58,7 @@ func main() {
 	ffmpegPath, err = exec.LookPath("ffmpeg")
 	if err != nil {
 		red.Println("\rVous n'avez pas ffmpeg. Veuillez l'installer.")
+		s.Stop()
 		os.Exit(0)
 	}
 	withoutExt = file.Name()[0 : len(file.Name())-len(fileExt)]
@@ -76,7 +78,7 @@ func main() {
 		fmt.Println("Une erreur s'est produite : la taille du fichier compressé est supérieure à la taille initiale...")
 		os.Exit(0)
 	}
-	bold.Println("Taille finale : ", crossed(fileSize, "MB"), "→", green(size, "MB"))
+	bold.Println("Taille finale : ", crossed(fileSize, "MB"), "→", green(size, "MB ", "(- ", math.Round(100-(100*size)/fileSize), " %)"))
 	originalFilePath := filepath.Join(dir, withoutExt+"_original"+fileExt)
 
 	os.Rename(filePath, originalFilePath)
@@ -87,11 +89,11 @@ func main() {
 	elapsedTime := endTime.Sub(startTime)
 
 	if elapsedTime < time.Minute {
-		fmt.Printf("Temps d'exécution : %.2f secondes\n", elapsedTime.Seconds())
+		bold.Printf("Temps d'exécution : %.2f secondes\n", elapsedTime.Seconds())
 	} else {
 		minutes := int(elapsedTime.Minutes())
 		seconds := int(elapsedTime.Seconds()) - (minutes * 60)
-		fmt.Printf("Temps d'exécution : %d minute.s %d seconde.s\n", minutes, seconds)
+		bold.Printf("Temps d'exécution : %d minute.s %d seconde.s\n", minutes, seconds)
 	}
 }
 
@@ -117,7 +119,7 @@ func compressFile(filePath string, retryI int) float64 {
 		parameter_b = "150"
 	}
 
-	s.Suffix = "  Compression en cours"
+	s.Suffix = "  Compression en cours\n"
 	s.Color("cyan")
 	s.Start()
 	cmd := exec.Command(
@@ -136,14 +138,17 @@ func compressFile(filePath string, retryI int) float64 {
 	cmd.Stderr = os.Stderr
 
 	err := cmd.Run()
+
 	if err != nil {
-		red.Println("\r", err)
+		red.Println(err)
+		s.Stop()
 		os.Exit(0)
 	}
 	// Retourner la taille du fichier compressé
 	file, err := os.Stat(filePath + ".compressed" + fileExt)
 	if err != nil {
 		red.Println("\rErreur lors de la récupération de la taille du fichier :", err)
+		s.Stop()
 		os.Exit(0)
 	}
 
