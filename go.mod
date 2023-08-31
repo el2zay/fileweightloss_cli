@@ -1,4 +1,4 @@
-module compresseur
+module fileweightloss
 
 go 1.20
 
