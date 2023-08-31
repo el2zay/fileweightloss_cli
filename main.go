@@ -119,7 +119,7 @@ func compressFile(filePath string, retryI int) float64 {
 		parameter_b = "150"
 	}
 
-	s.Suffix = "  Compression en cours\n"
+	s.Suffix = "  Compression en cours"
 	s.Color("cyan")
 	s.Start()
 	cmd := exec.Command(
