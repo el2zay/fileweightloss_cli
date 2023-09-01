@@ -7,3 +7,16 @@ Il utilise [ffmpeg](https://ffmpeg.org/download.html), ce dernier doit obligatoi
 
 ## Démonstration : avant - après
 **Bientot, promis !** 
+
+## TODO
+
+- [ ] Notification a la fin de la compression si elle tourne depuis plus d'une minute
+- [ ] Meilleure gestion de certaines erreurs
+- [ ] Compresser plusieurs fichiers en une commande
+- [ ] Prompt pour installer facilement ffmpeg si il n'est pas sur la machine.
+- [ ] Argument pour choisir le niveau de compression
+- [ ] Argument pour n'utiliser qu'une seule tentative de compression
+- [ ] Argument pour afficher les logs ffmpeg au lieu d'une animation de chargement
+- [ ] Pouvoir afficher une sortie différente pour faciliter l'automatisation
+- [ ] Installateur graphique pour Windows
+- [ ] Publication dans le MS Store et gestionnaire de paquets
