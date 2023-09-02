@@ -12,7 +12,6 @@ Il utilise [ffmpeg](https://ffmpeg.org/download.html), ce dernier doit obligatoi
 
 - [X] Meilleure gestion de certaines erreurs
 - [X] Argument pour afficher les logs ffmpeg au lieu d'une animation de chargement
-
 - [ ] Notification a la fin de la compression si elle tourne depuis plus d'une minute
 - [ ] Compresser plusieurs fichiers en une commande
 - [ ] Prompt pour installer facilement ffmpeg si il n'est pas sur la machine.
