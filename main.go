@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"math"
@@ -29,6 +30,8 @@ var (
 	crossed = color.New(color.FgRed).Add(color.CrossedOut).SprintFunc()
 	// Définir les flags
 	ffmpegLogs bool
+	onetry     bool
+	jsonf      bool
 )
 
 func main() {
@@ -37,7 +40,9 @@ func main() {
 		fmt.Printf(`Usage: %s <chemin complet du fichier>
 
 Flags:
-     -logs : Active les logs de ffmpeg.
+     -logs   : Active les logs de ffmpeg.
+	 -onetry : Faire seulement une tentative.
+	 -json   : Affiche une sortie au format JSON.
 `, filepath.Base(os.Args[0]))
 		// Quitter le programme proprement
 		os.Exit(0)
@@ -46,14 +51,21 @@ Flags:
 	filePath = os.Args[1]
 	fileExt = filepath.Ext(filePath) // Récupérer l'extension de filePath
 
-	flag.BoolVar(&ffmpegLogs, "logs", false, "Active les logs de ffmpeg.") // Définir le flag logs
+	flag.BoolVar(&ffmpegLogs, "logs", false, "Active les logs de ffmpeg.")    // Définir le flag logs
+	flag.BoolVar(&onetry, "onetry", false, "Faire seulement une tentative.")  // Définir le flag onetry
+	flag.BoolVar(&jsonf, "json", false, "Affiche une sortie au format JSON.") // Définir le flag json
 	flag.Parse()
 
 	// Vérifier si le drapeau -logs est présent dans la ligne de commande
 	for _, arg := range os.Args {
 		if arg == "-logs" {
 			ffmpegLogs = true
-			break
+		}
+		if arg == "-onetry" {
+			onetry = true
+		}
+		if arg == "-json" {
+			jsonf = true
 		}
 	}
 
@@ -94,8 +106,8 @@ Flags:
 		os.Exit(0)
 	}
 
-	fileSize := float64(file.Size()) / (1024 * 1024) // récupérer la taille et convertir en MB
-	fileSize = math.Round(fileSize*100) / 100        // arrondir
+	originalSize := float64(file.Size()) / (1024 * 1024)  // récupérer la taille et convertir en MB
+	originalSizeRounded := math.Round(originalSize*100) / 100 // arrondir
 
 	// Détecter si la commande ffmpeg existe
 	ffmpegPath, err = exec.LookPath("ffmpeg")
@@ -107,40 +119,74 @@ Flags:
 	}
 	withoutExt = file.Name()[0 : len(file.Name())-len(fileExt)] // Récupérer le nom du fichier mais sans son extension
 
-	// Compresser une fois
-	size := compressFile(filePath, 0)
-	var i int
-	// En fonction du résultat il est possible que l'on doit réessayer
-	for i = 0; i <= 3; i++ {
-		if size > fileSize*(1-float64(i)*0.05) {
-			size = compressFile(filePath, i)
-		} else {
-			break
-		}
+	if jsonf {
+		fmt.Println("--- Début de la compression ---")
 	}
 
+	// Compresser une fois
+	finalSize := compressFile(filePath, 0)
+	var i int
+	// Si le flag onetry est sur true
+	if onetry {
+		// En fonction du résultat il est possible que l'on doit réessayer
+		for i = 0; i <= 3; i++ {
+			if finalSize > originalSize*(1-float64(i)*0.05) {
+				finalSize = compressFile(filePath, i)
+			} else {
+				break
+			}
+		}
+	}
 	// Si la taille du fichier compressé est plus grande que celle du fichier de base
-	if size > fileSize {
+	if finalSize > originalSize {
 		red.Println("\rUne erreur s'est produite : la taille du fichier compressé est supérieure à la taille initiale...")
 		os.Exit(0)
 	}
 	// Si la taille du fichier compressé est égale à celle du fichier de base
-	if size == fileSize {
-		red.Println("\rLe fichier a peut-être déjà été compressé plusieurs fois, il ne peut donc pas perdre plus de données.")
+	if finalSize == originalSize {
+		message := "\rLe fichier a sûrement été compressé plusieurs fois, il ne peut donc pas perdre plus de données."
+		if onetry {
+			message = "\rLe fichier a sûrement été compressé, tentez d'enlever le flag -onetry."
+		}
+		red.Println(message)
 	}
 
-	// Afficher quelques informations.
-	bold.Println("Taille finale : ", crossed(fileSize, "MB"), "→", green(size, "MB ", "(- ", math.Round(100-(100*size)/fileSize), " %)"))
 	originalFilePath := filepath.Join(dir, withoutExt+"_original"+fileExt)
 
-	os.Rename(filePath, originalFilePath) // Le fichier original prend un _original a son nom
+	os.Rename(filePath, originalFilePath)               // Le fichier original prend un _original a son nom
 	os.Rename(filePath+".compressed"+fileExt, filePath) // Le fichier compressé reprend le nom du fichier comme il était avant
-	fmt.Println("Votre vidéo se trouve ici :", yellow.Sprint(filePath))
 
 	endTime := time.Now() // Finir le temps ici
-	elapsedTime := endTime.Sub(startTime) 
+	elapsedTime := endTime.Sub(startTime)
+	pourcent := math.Round(100 - (100*finalSize)/originalSize)
 
-	// Si le programme a pris moins d'une minute pour se finir 
+	if jsonf {
+		data := map[string]interface{}{
+			"finalSize":           finalSize * 1024 * 1024,
+			"originalSize":        originalSize * 1024 * 1024,
+			"percentageReduction": pourcent,
+			"filePath":            filePath,
+			"time":                elapsedTime.Milliseconds(),
+			"try":                 i + 1,
+		}
+
+		jsonData, err := json.Marshal(data)
+		if err != nil {
+			fmt.Println("Erreur lors de la conversion en JSON : ", err)
+			os.Exit(1)
+		} else {
+			fmt.Println(string(jsonData))
+			os.Exit(0)
+		}
+	}
+	finalSizeRounded := math.Round(finalSize*100) / 100 // arrondir
+
+	// Afficher quelques informations.
+	bold.Println("Taille finale : ", crossed(originalSizeRounded, "MB"), "→", green(finalSizeRounded, "MB ", "(- ", pourcent, " %)"))
+
+	fmt.Println("Votre vidéo se trouve ici :", yellow.Sprint(filePath))
+
+	// Si le programme a pris moins d'une minute pour se finir
 	if elapsedTime < time.Minute {
 		fmt.Printf("Temps d'exécution : %.0f secondes\n", elapsedTime.Seconds()) // on l'affiche en secondes
 	} else { //Sinon
@@ -180,14 +226,15 @@ func compressFile(filePath string, retryI int) float64 {
 	// Analyser les drapeaux de la ligne de commande
 	flag.Parse()
 
-	// S'il n'y a pas de flags -logs démarrer le spinner
-	if !ffmpegLogs {
+	// S'il n'y a pas de flags -logs ou -json démarrer le spinner
+	if !ffmpegLogs && !jsonf {
 		s.Start()
 	}
 
 	// Executer la commande ffmpeg
 	cmdArgs := []string{
 		ffmpegPath,
+		"-ss", "0:01",
 		"-i", filePath,
 		"-vcodec", "libx264",
 		"-preset", "slower",
@@ -200,6 +247,8 @@ func compressFile(filePath string, retryI int) float64 {
 	if !ffmpegLogs {
 		cmdArgs = append(cmdArgs, "-hide_banner", "-loglevel", "error")
 	}
+
+	// TODO: Lorsque la personne quitte avec CTRL+C arrêter immédiatement le script avec les -logs.
 
 	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
 
@@ -222,8 +271,7 @@ func compressFile(filePath string, retryI int) float64 {
 		os.Exit(0)
 	}
 
-	fileSize := float64(file.Size()) / (1024 * 1024) // convertir en MB
-	fileSize = math.Round(fileSize*100) / 100        // arrondir
+	fileSize := float64(file.Size()) / (1024 * 1024)  // convertir en MB
 	s.Stop()
 	return fileSize
 }
