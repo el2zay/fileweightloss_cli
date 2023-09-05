@@ -12,12 +12,12 @@ Il utilise [ffmpeg](https://ffmpeg.org/download.html), ce dernier doit obligatoi
 
 - [X] Meilleure gestion de certaines erreurs
 - [X] Argument pour afficher les logs ffmpeg au lieu d'une animation de chargement
-- [ ] Notification a la fin de la compression si elle tourne depuis plus d'une minute
+- [X] Argument pour n'utiliser qu'une seule tentative de compression
+- [X] Pouvoir afficher une sortie différente en JSON pour faciliter l'automatisation
+- [ ] Notification a la fin de la compression si elle tourne depuis plus d'une minute [prêt mais bug sur windows 11](https://github.com/gen2brain/beeep/issues/57)
 - [ ] Compresser plusieurs fichiers en une commande
 - [ ] Prompt pour installer facilement ffmpeg si il n'est pas sur la machine.
 - [ ] Argument pour choisir le niveau de compression
-- [ ] Argument pour n'utiliser qu'une seule tentative de compression
-- [ ] Pouvoir afficher une sortie différente pour faciliter l'automatisation
 - [ ] Installateur graphique pour Windows
 - [ ] Publication dans le MS Store et gestionnaire de paquets
 
