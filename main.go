@@ -234,7 +234,6 @@ func compressFile(filePath string, retryI int) float64 {
 	// Executer la commande ffmpeg
 	cmdArgs := []string{
 		ffmpegPath,
-		"-ss", "0:01",
 		"-i", filePath,
 		"-vcodec", "libx264",
 		"-preset", "slower",
