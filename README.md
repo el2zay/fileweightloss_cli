@@ -1,4 +1,5 @@
-# FileWeightLoss
+# FileWeightLoss CLI
+> Retrouvez la version GUI [ici](https://github.com/el2zay/fileweightloss)
 *N'attendez plus pour faire perdre du poids à vos fichiers.*
 ## À quoi sert FileWeightLoss
 Fileweightloss permet de compresser un fichier vidéo ou audio dans certains formats courants (.mp4, .mov, .mp3, ...) sans réduire la résolution, et sans faire de trop grosses modifications dans la qualité visuelle ou sonore.
