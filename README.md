@@ -8,9 +8,6 @@ Fileweightloss permet de compresser un fichier vidéo ou audio dans certains for
 
 Il utilise [ffmpeg](https://ffmpeg.org/download.html), ce dernier doit obligatoirement être installé sur votre ordinateur.
 
-## Démonstration : avant - après
-**Bientot, promis !** 
-
 ## TODO
 
 - [X] Meilleure gestion de certaines erreurs
